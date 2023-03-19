@@ -1,19 +1,33 @@
-#include "compressor/compressor.h"
-#include <iostream>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include "PFileManager.h"
+#include <filesystem>
 
 int main(int argc, char *argv[])
 {
-    Bitmap b(2, 5);
-    b.write(4, 0xff);
-    b.write(5, 0xff);
-    b.write(6, 0xff);
-    b.write(7, 0xff);
-    auto cb = Compressor::compress(b);
-    auto db = Compressor::decompress(Bitmap::loads(cb.dumps()));
-
-    std::cout << b.dumps() << std::endl;
-    std::cout << cb.dumps() << std::endl;
-    std::cout << Bitmap::loads(cb.dumps()).dumps() << std::endl;
-    std::cout << db.dumps() << std::endl;
-    return 0;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+    QGuiApplication app(argc, argv);
+    QQmlApplicationEngine engine;
+    const char *start_path = "images";
+    if (argc > 1)
+    {
+        start_path = argv[1];
+    }
+    std::filesystem::path start_fs_path = std::filesystem::absolute(std::filesystem::path(start_path));
+    QObject *manager = new PFileManager(start_fs_path.c_str());
+    engine.rootContext()->setContextProperty("Manager", manager);
+    engine.rootContext()->setContextProperty("start_path", start_fs_path.c_str());
+    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    QObject::connect(
+        &engine, &QQmlApplicationEngine::objectCreated,
+        &app, [url](QObject *obj, const QUrl &objUrl)
+        {
+        if (!obj && url == objUrl)
+            QCoreApplication::exit(-1); },
+        Qt::QueuedConnection);
+    engine.load(url);
+    return app.exec();
 }
