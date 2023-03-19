@@ -6,7 +6,7 @@
 
 ## Installing
 ```
-git clone --recursive <this rep>
+git clone --recursive <this repo>
 ```
 
 ## Running
