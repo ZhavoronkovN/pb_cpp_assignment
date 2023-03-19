@@ -5,8 +5,7 @@ Window {
     width: 640
     height: 480
     visible: true
-    title: qsTr("Hello World")
-    PErrorDialog { id : error_dialog }
+    title: qsTr("PB assignment")
     Column{
         width: parent.width
         padding: 10
